@@ -10,13 +10,8 @@ export async function GET(req: NextRequest) {
   try {
     
     const authToken = await getValidAccessToken();
-    let host = await getCookieSession("hostURL");
-    const currentloggedInServer = await getCookieSession("currentloggedInServer");
+    let host = await getCookieSession("serverURL");
     
-    if(currentloggedInServer === "local-auth") {
-        host = await getCookieSession("localHostURL");
-    }
-
     const completeUrl = `${host}/subscription/status`
     
     const response = await fetch(

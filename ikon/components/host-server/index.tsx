@@ -15,7 +15,7 @@ import { Input } from '@/shadcn/ui/input'
 import { Label } from '@/shadcn/ui/label'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { create } from 'zustand'
-import AddEnv, { useEnvStore } from '../Add-Env'
+import AddEnv, { useEnvStore, loadEnvFromSessionStorage } from '../Add-Env'
 import { setCookieSession } from '@/ikon/utils/cookieSession'
 import { toast } from 'sonner'
 import { apiReaquest } from '@/ikon/utils/apiRequest'
@@ -42,12 +42,9 @@ export default function HostServer() {
 
   useEffect(() => {
     if (open && envs.length === 0) {
-      setEnvs([
-        { server: 'local', link: '' },
-        { server: 'local-auth', link: '' },
-        { server: 'dev', link: '' },
-        { server: 'prod', link: '' },
-      ])
+      
+      const laodedEnvs = loadEnvFromSessionStorage()
+      setEnvs(laodedEnvs)
     }
   }, [open, envs, setEnvs])
 
@@ -76,7 +73,7 @@ export default function HostServer() {
     let host = "https://ikoncloud-dev.keross.com/ikon-api";
     for (let i = 0; i < envs.length; i++) {
       if (envs[i].server === server) {
-        host = envs[i].link
+        host = envs[i].auth
         break
       }
     }
@@ -85,7 +82,7 @@ export default function HostServer() {
       return
     }
     debugger
-    if (server === 'local') {
+    if (server === 'local-test') {
       setHostServer(server)
       setOpen(false)
       setLoginError('')
@@ -139,10 +136,15 @@ export default function HostServer() {
 
           await setCookieSession('currentloggedInServer', server);
 
-          if(server === 'local-auth'){
-            const localServerUrl = envs.filter(env => env.server === 'local')[0].link;
-            await setCookieSession('localHostURL', localServerUrl);
-          }
+          // if(server === 'local-auth'){
+          //   const localServerUrl = envs.filter(env => env.server === 'local')[0].link;
+          //   await setCookieSession('localHostURL', localServerUrl);
+          // }
+
+          const serverAuthUrl = envs.filter(env => env.server === server)[0].auth;
+          await setCookieSession('serverAuthURL',serverAuthUrl);
+          const serverUrl = envs.filter(env => env.server === server)[0].link;
+          await setCookieSession('serverURL',serverUrl);
 
           toast.success(`Login successful in ${server}`)
           const isSubscribed = await checkIfSubscribedToApp();
@@ -169,16 +171,16 @@ export default function HostServer() {
   const changeEnv = (value: string) => {
     setHostServer(value)
     
-    if (value === 'local') {
-      setOpen(false)
-      setUsername('')
-      setPassword('')
-      setLoginError('')
-    } else {
-      setUsername('')
-      setPassword('')
-      setLoginError('')
-    }
+    // if (value === 'local') {
+    //   setOpen(false)
+    //   setUsername('')
+    //   setPassword('')
+    //   setLoginError('')
+    // } else {
+    //   setUsername('')
+    //   setPassword('')
+    //   setLoginError('')
+    // }
   }
 
   return (
@@ -218,13 +220,13 @@ export default function HostServer() {
           onValueChange={setHostServer}
           className="space-y-2"
         >
-          {envs.filter((env)=>env.server !== "local").map((env, index) => (
+          {envs.map((env, index) => (
             <div key={index}>
               <DropdownMenuRadioItem value={env.server}>
                 {env.server}
               </DropdownMenuRadioItem>
 
-              {hostServer === env.server && hostServer !== 'local' && (
+              {hostServer === env.server && (
                 <div className="pt-2 border-t mt-2 space-y-4 px-3">
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>

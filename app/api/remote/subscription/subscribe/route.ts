@@ -9,12 +9,7 @@ import { getValidAccessToken } from "@/ikon/utils/accessToken";
 export async function POST(req: NextRequest) {
   try {
     const authToken = await getValidAccessToken();
-    let host = await getCookieSession("hostURL");
-    const currentloggedInServer = await getCookieSession("currentloggedInServer");
-
-    if(currentloggedInServer === "local-auth") {
-        host = await getCookieSession("localHostURL");
-    }
+    let host = await getCookieSession("serverURL");
     // const host = "http://localhost:8081"
     const completeUrl = `${host}/subscribe`;
 

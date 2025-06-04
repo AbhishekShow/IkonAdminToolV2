@@ -9,14 +9,8 @@ export async function GET(
   try {
     const { roleId } = await params;
     const authToken = await getValidAccessToken();
-    let host = await getCookieSession("hostURL");
-    const currentloggedInServer = await getCookieSession(
-      "currentloggedInServer"
-    );
+    const host = await getCookieSession("serverURL");
 
-    if (currentloggedInServer === "local-auth") {
-      host = await getCookieSession("localHostURL");
-    }
     const completeUrl = `${host}/role/${roleId}/membership`;
 
     console.log(completeUrl);

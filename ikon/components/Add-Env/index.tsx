@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { create } from 'zustand'
 
-type EnvRow = { server: string; link: string }
+type EnvRow = { server: string; link: string; auth: string }
 
 type EnvState = {
     envs: EnvRow[]
@@ -26,25 +26,55 @@ export const useEnvStore = create<EnvState>((set) => ({
     setEnvs: (rows) => set({ envs: rows }),
 }))
 
+export const saveEnvToSessionStorage = (rows: {server: string, link: string, auth: string}[]) => {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem('envRows', JSON.stringify(rows))
+    }
+}
+
+export const loadEnvFromSessionStorage = () => {
+    
+    let rows:{server: string; link: string; auth: string}[] = [];
+
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+        const envRows = sessionStorage.getItem('envRows')
+        if (envRows) {
+            rows = JSON.parse(envRows)
+        }
+        else {
+            rows = [
+                {server: 'local', link: '', auth: ''},
+                {server: 'dev', link: '', auth: ''},
+                {server: 'prod', link: '', auth: ''},
+            ]
+        }
+    }
+
+    return rows;
+}
+
 function AddEnv() {
     const [open, setOpen] = useState(false)
-    const [rows, setRows] = useState([{ server: 'local', link: '' }])
+    const [rows, setRows] = useState([{ server: 'local', link: '', auth: '' }])
 
     const { envs, setEnvs } = useEnvStore()
 
     // Load saved envs from global store when dialog is opened
     useEffect(() => {
         if (open) {
+
+            const envs = loadEnvFromSessionStorage();
+
             if (envs.length > 0) {
                 setRows(envs)
             } else {
-                setRows([{ server: 'local', link: '' }])
+                setRows([{ server: 'local', link: '', auth: '' }])
             }
         }
     }, [open, envs])
 
     const handleAddRow = () => {
-        setRows([...rows, { server: '', link: '' }])
+        setRows([...rows, { server: '', link: '', auth: '' }])
     }
 
     const handleDeleteRow = (index: number) => {
@@ -53,12 +83,13 @@ function AddEnv() {
 
     const handleChange = (index: number, field: string, value: string) => {
         const updated = [...rows]
-        updated[index][field as 'server' | 'link'] = value
+        updated[index][field as 'server' | 'link' | 'auth'] = value
         setRows(updated)
     }
 
     const handleSave = () => {
         setEnvs(rows)
+        saveEnvToSessionStorage(rows);
         setOpen(false)
     }
 
@@ -79,7 +110,8 @@ function AddEnv() {
                         <thead>
                             <tr className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200">
                                 <th className="border w-45 p-1">Server</th>
-                                <th className="border w-45 p-1">Link</th>
+                                <th className="border w-45 p-1">Application Url</th>
+                                <th className="border w-45 p-1">Auth Server Url</th>
                                 {/* <th className="border w-5 p-1">
                                     <Button variant="outline" size="icon" onClick={handleAddRow}>
                                         <PlusIcon />
@@ -105,7 +137,14 @@ function AddEnv() {
                                             <Input
                                                 value={row.link}
                                                 onChange={(e) => handleChange(index, 'link', e.target.value)}
-                                                placeholder="Enter link"
+                                                placeholder="Enter Application Url"
+                                            />
+                                        </td>
+                                        <td className="border w-45 p-2">
+                                            <Input
+                                                value={row.auth}
+                                                onChange={(e) => handleChange(index, 'auth', e.target.value)}
+                                                placeholder="Enter Auth Server Url"
                                             />
                                         </td>
                                         {/* <td className="border w-5 p-1 text-center">

@@ -11,13 +11,9 @@ export async function POST(
     console.log("processId", processId);
     const body = await req.json();
 
-        const authToken = await getValidAccessToken();
-        let host = await getCookieSession("hostURL");
-        const currentloggedInServer = await getCookieSession("currentloggedInServer");
-
-    if (currentloggedInServer === "local-auth") {
-      host = await getCookieSession("localHostURL");
-    }
+    const authToken = await getValidAccessToken();
+    let host = await getCookieSession("serverURL");
+    
     const completeUrl = `${host}/processengine/runtime/process/${processId}/start-instance`;
 
     const reqBody = {

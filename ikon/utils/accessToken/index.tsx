@@ -49,7 +49,7 @@ async function refreshAccessToken(
 ): Promise<string | null> {
   try {
     // Replace this with your actual API call to refresh the token
-    let hostUrl = await getCookieSession("hostURL");
+    let hostUrl = await getCookieSession("serverAuthURL");
 
     // const currentloggedInServer = await getCookieSession("currentloggedInServer");
 
